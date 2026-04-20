@@ -32,6 +32,10 @@
            if(msg != null) { %>
             <div class="msg success"><%= msg %></div>
         <% } %>
+        <% String errorMsg = request.getParameter("error"); 
+           if(errorMsg != null) { %>
+            <div class="msg error" style="background-color:#fee2e2; color:#ef4444; padding:1rem; border-radius:10px; margin-bottom:1rem;"><%= errorMsg %></div>
+        <% } %>
         
         <p style="color: #94a3b8; margin-bottom: 1rem;">유튜브 영상의 영어 문장을 AI로 분석하여 나만의 단어장을 만드세요.</p>
         
