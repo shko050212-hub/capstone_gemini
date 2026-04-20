@@ -8,7 +8,7 @@ public class DBManager {
     // 실제 사용 시 환경변수 또는 프로퍼티 파일에서 로드하는 것이 좋습니다.
     private static final String URL = "jdbc:mariadb://capstone-db.cfw4cygk4dks.ap-northeast-2.rds.amazonaws.com:3306/testdb";
     private static final String USER = "admin"; // AWS RDS 마스터 사용자
-    private static final String PASSWORD = "Shko0502@daum.net"; // AWS RDS 암호
+    private static final String PASSWORD = "1234"; // AWS RDS 암호
 
     static {
         try {
