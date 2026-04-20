@@ -59,13 +59,13 @@ public class AnalyzeServlet extends HttpServlet {
                 
                 // TODO: 영상 히스토리 테이블에도 저장 (생략)
                 
-                response.sendRedirect("main.jsp?msg=분석 완료! 총 " + addedWords + "개의 학습 단어가 추가되었습니다.");
+                response.sendRedirect("main.jsp?msg=" + java.net.URLEncoder.encode("분석 완료! 총 " + addedWords + "개의 학습 단어가 추가되었습니다.", "UTF-8"));
             } else {
-                response.sendRedirect("main.jsp?error=분석 실패: " + analysisResult.getString("message"));
+                response.sendRedirect("main.jsp?error=" + java.net.URLEncoder.encode("분석 실패: " + analysisResult.getString("message"), "UTF-8"));
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("main.jsp?error=서버 내부 에러가 발생했습니다.");
+            response.sendRedirect("main.jsp?error=" + java.net.URLEncoder.encode("서버 내부 에러가 발생했습니다.", "UTF-8"));
         }
     }
 }

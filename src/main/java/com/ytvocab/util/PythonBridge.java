@@ -27,9 +27,11 @@ public class PythonBridge {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
         StringBuilder output = new StringBuilder();
         String line;
+        String lastLine = "";
         
         while ((line = reader.readLine()) != null) {
-            output.append(line);
+            output.append(line).append("\n");
+            lastLine = line;
         }
         
         int exitCode = process.waitFor();
@@ -38,6 +40,6 @@ public class PythonBridge {
         }
         
         // 파이썬에서 print(json.dumps(...))로 출력한 마지막 문장을 파싱
-        return new JSONObject(output.toString());
+        return new JSONObject(lastLine);
     }
 }
