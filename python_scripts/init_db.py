@@ -12,7 +12,7 @@ try:
     conn = pymysql.connect(
         host="capstone-db.cfw4cygk4dks.ap-northeast-2.rds.amazonaws.com",
         user="admin", 
-        password="1234", 
+        password="CapstonePassword123!", 
         db="testdb", 
         port=3306
     )
