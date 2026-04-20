@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-echo "Setting up Free Tier Tuning (4GB Swap)..."
-if [ ! -f /swapfile ]; then
-    sudo fallocate -l 4G /swapfile
+echo "Setting up Free Tier Tuning (2GB Swap)..."
+if [ ! -f /swapfile ] && [ ! -f /swapfile_done ]; then
+    sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
     sudo chmod 600 /swapfile
     sudo mkswap /swapfile
     sudo swapon /swapfile
