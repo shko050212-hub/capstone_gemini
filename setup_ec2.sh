@@ -16,6 +16,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt install -y openjdk-17-jdk tomcat9 python
 
 echo "Preparing Python AI Environment..."
 mkdir -p /home/ubuntu/yt-vocab/python_scripts
+cp -r python_scripts/* /home/ubuntu/yt-vocab/python_scripts/ 2>/dev/null || true
 cd /home/ubuntu/yt-vocab/python_scripts
 
 # Virtual Env
