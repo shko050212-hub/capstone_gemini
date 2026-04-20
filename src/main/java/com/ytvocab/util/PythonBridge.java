@@ -10,9 +10,9 @@ public class PythonBridge {
     // OS 구분
     private static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase().contains("win");
     
-    // 실행 환경에 맞게 python 실행 경로 및 스크립트 경로 변경
-    private static final String PYTHON_EXE = IS_WINDOWS ? "python" : "/home/ubuntu/yt-vocab/python_scripts/venv/bin/python3"; 
-    private static final String SCRIPT_DIR = IS_WINDOWS ? "c:\\capstone\\python_scripts" : "/home/ubuntu/yt-vocab/python_scripts";
+    // 실행 환경에 맞게 python 실행 경로 및 스크립트 경로 변경 (아마존 리눅스는 ec2-user)
+    private static final String PYTHON_EXE = IS_WINDOWS ? "python" : "/home/ec2-user/yt-vocab/python_scripts/venv/bin/python3"; 
+    private static final String SCRIPT_DIR = IS_WINDOWS ? "c:\\capstone\\python_scripts" : "/home/ec2-user/yt-vocab/python_scripts";
     private static final String SCRIPT_PATH = SCRIPT_DIR + (IS_WINDOWS ? "\\analyzer.py" : "/analyzer.py");
 
     public static JSONObject analyzeVideo(String url) throws Exception {

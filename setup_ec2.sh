@@ -3,26 +3,34 @@ set -e
 
 echo "Setting up Free Tier Tuning (2GB Swap)..."
 if [ ! -f /swapfile ] && [ ! -f /swapfile_done ]; then
-    sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
-    sudo chmod 600 /swapfile
-    sudo mkswap /swapfile
-    sudo swapon /swapfile
-    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+    sudo dd if=/dev/zero of=/swapfile bs=1M count=2048 || true
+    sudo chmod 600 /swapfile || true
+    sudo mkswap /swapfile || true
+    sudo swapon /swapfile || true
 fi
 
-echo "Fixing DPKG Locks..."
-sudo killall apt apt-get dpkg unattended-upgrades 2>/dev/null || true
-sudo rm -f /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend
-sudo dpkg --configure -a 2>/dev/null || true
+echo "Installing Amazon Linux Packages (Java 17, Tomcat, Python 3)..."
+sudo yum update -y
+sudo yum install -y java-17-amazon-corretto-devel || sudo yum install -y java-17-openjdk-devel
+sudo yum install -y tomcat python3 python3-pip || sudo dnf install -y tomcat python3 python3-pip
 
-echo "Installing Java 17, Tomcat 9, Python 3, FFmpeg..."
-sudo apt-get -o Acquire::ForceIPv4=true update -yq
-sudo DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::ForceIPv4=true install -yq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" openjdk-17-jdk tomcat9 python3-pip python3-venv ffmpeg
+echo "Starting Tomcat..."
+sudo systemctl enable tomcat || true
+sudo systemctl start tomcat || true
 
-echo "Preparing Python AI Environment..."
-mkdir -p /home/ubuntu/yt-vocab/python_scripts
-cp -r python_scripts/* /home/ubuntu/yt-vocab/python_scripts/ 2>/dev/null || true
-cd /home/ubuntu/yt-vocab/python_scripts
+echo "Installing Static FFmpeg for Amazon Linux..."
+if ! command -v ffmpeg &> /dev/null; then
+    wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+    tar -xf ffmpeg-release-amd64-static.tar.xz
+    sudo cp ffmpeg-*-static/ffmpeg /usr/bin/
+    sudo cp ffmpeg-*-static/ffprobe /usr/bin/
+    rm -rf ffmpeg-*-static.tar.xz ffmpeg-*-static
+fi
+
+echo "Preparing Python AI Environment for Amazon Linux (ec2-user)..."
+mkdir -p /home/ec2-user/yt-vocab/python_scripts
+cp -r python_scripts/* /home/ec2-user/yt-vocab/python_scripts/ 2>/dev/null || true
+cd /home/ec2-user/yt-vocab/python_scripts
 
 # Virtual Env
 if [ ! -d "venv" ]; then
