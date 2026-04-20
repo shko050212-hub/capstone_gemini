@@ -45,6 +45,14 @@
                 <button class="btn" type="submit" style="width: auto;" id="analyzeBtn">Analyze Video</button>
             </div>
             <p id="loadingText" style="display:none; color:var(--primary); text-align:center; font-weight:bold;">🔥 AI가 영상을 분석 중입니다... 잠시만 기다려 주세요!</p>
+            
+            <div id="progressContainer" style="display:none; margin-top:1.5rem;">
+                <p id="progressMessage" style="color:var(--primary); font-weight:bold; margin-bottom: 0.5rem; text-align: center;">분석 작업을 준비 중입니다...</p>
+                <div style="width: 100%; background-color: #e2e8f0; border-radius: 999px; height: 1.5rem; overflow: hidden; position: relative;">
+                    <div id="progressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ec4899, #3b82f6); transition: width 0.5s ease;"></div>
+                    <span id="progressPercent" style="position: absolute; top:0; left:0; width: 100%; text-align: center; color: white; font-weight: bold; font-size: 0.9rem; line-height: 1.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">0%</span>
+                </div>
+            </div>
         </form>
         
         <div style="text-align: center; margin-top: 1rem; margin-bottom: 2rem;">
@@ -68,10 +76,49 @@
     </div>
     
     <script>
-        document.getElementById('analyzeForm').onsubmit = function() {
+        document.getElementById('analyzeForm').onsubmit = function(e) {
+            e.preventDefault(); // Prevent standard form submit
+            const urlInput = document.querySelector('input[name="youtubeUrl"]');
+            
             document.getElementById('analyzeBtn').style.display = 'none';
-            document.getElementById('loadingText').style.display = 'block';
-        }
+            document.getElementById('progressContainer').style.display = 'block';
+            
+            fetch('<%=request.getContextPath()%>/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'youtubeUrl=' + encodeURIComponent(urlInput.value)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'error') {
+                    window.location.href = 'main.jsp?error=' + encodeURIComponent(data.message);
+                    return;
+                }
+                
+                // Start polling progress
+                const timer = setInterval(() => {
+                    fetch('<%=request.getContextPath()%>/analyze-progress')
+                    .then(r => r.json())
+                    .then(p => {
+                        if (p.status === 'running') {
+                            document.getElementById('progressBar').style.width = p.percent + '%';
+                            document.getElementById('progressPercent').innerText = p.percent + '%';
+                            document.getElementById('progressMessage').innerText = '🔥 ' + p.message;
+                        } else if (p.status === 'completed') {
+                            clearInterval(timer);
+                            if (p.error) {
+                                window.location.href = 'main.jsp?error=' + encodeURIComponent(p.error);
+                            } else {
+                                window.location.href = 'main.jsp?msg=' + encodeURIComponent(p.msg);
+                            }
+                        }
+                    });
+                }, 1000);
+            })
+            .catch(err => {
+                window.location.href = 'main.jsp?error=' + encodeURIComponent("네트워크 에러가 발생했습니다.");
+            });
+        };
     </script>
 </body>
 </html>

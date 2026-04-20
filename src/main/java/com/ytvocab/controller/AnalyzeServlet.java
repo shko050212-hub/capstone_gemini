@@ -28,44 +28,64 @@ public class AnalyzeServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("authUser");
+        response.setContentType("application/json;charset=UTF-8");
+        JSONObject res = new JSONObject();
+
         if (user == null) {
-            response.sendRedirect("index.jsp");
+            res.put("status", "error");
+            res.put("message", "not_logged_in");
+            response.getWriter().write(res.toString());
             return;
         }
 
         String youtubeUrl = request.getParameter("youtubeUrl");
         if (youtubeUrl == null || youtubeUrl.isEmpty()) {
-            response.sendRedirect("main.jsp?error=url_missing");
+            res.put("status", "error");
+            res.put("message", "url_missing");
+            response.getWriter().write(res.toString());
             return;
         }
 
-        try {
-            JSONObject analysisResult = PythonBridge.analyzeVideo(youtubeUrl);
-            
-            if ("success".equals(analysisResult.getString("status"))) {
-                JSONArray vocabArray = analysisResult.getJSONArray("vocabulary");
-                int addedWords = 0;
-                
-                try (Connection conn = DBManager.getConnection()) {
-                    for (int i = 0; i < vocabArray.length(); i++) {
-                        String word = vocabArray.getString(i);
-                        int wordId = vocabDAO.saveOrGetWord(word);
-                        if (wordId != -1) {
-                            progressDAO.addProgressIfNotExists(conn, user.getUserNo(), wordId);
-                            addedWords++;
+        PythonBridge.startAnalysisAsync(user.getUserNo(), youtubeUrl, new PythonBridge.AnalyzeCallback() {
+            @Override
+            public void onSuccess(JSONObject analysisResult) throws Exception {
+                if ("success".equals(analysisResult.optString("status"))) {
+                    JSONArray vocabArray = analysisResult.optJSONArray("vocabulary");
+                    int addedWords = 0;
+                    if(vocabArray != null) {
+                        try (Connection conn = DBManager.getConnection()) {
+                            for (int i = 0; i < vocabArray.length(); i++) {
+                                String word = vocabArray.getString(i);
+                                int wordId = vocabDAO.saveOrGetWord(word);
+                                if (wordId != -1) {
+                                    progressDAO.addProgressIfNotExists(conn, user.getUserNo(), wordId);
+                                    addedWords++;
+                                }
+                            }
                         }
                     }
+                    JSONObject doneData = new JSONObject();
+                    doneData.put("status", "completed");
+                    doneData.put("msg", "분석 완료! 총 " + addedWords + "개의 학습 단어가 추가되었습니다.");
+                    PythonBridge.tasks.put(user.getUserNo(), doneData);
+                } else {
+                    JSONObject failData = new JSONObject();
+                    failData.put("status", "completed");
+                    failData.put("error", "분석 실패: " + analysisResult.optString("message"));
+                    PythonBridge.tasks.put(user.getUserNo(), failData);
                 }
-                
-                // TODO: 영상 히스토리 테이블에도 저장 (생략)
-                
-                response.sendRedirect("main.jsp?msg=" + java.net.URLEncoder.encode("분석 완료! 총 " + addedWords + "개의 학습 단어가 추가되었습니다.", "UTF-8"));
-            } else {
-                response.sendRedirect("main.jsp?error=" + java.net.URLEncoder.encode("분석 실패: " + analysisResult.getString("message"), "UTF-8"));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect("main.jsp?error=" + java.net.URLEncoder.encode("서버 내부 에러가 발생했습니다.", "UTF-8"));
-        }
+
+            @Override
+            public void onError(JSONObject errorResult) {
+                JSONObject failData = new JSONObject();
+                failData.put("status", "completed");
+                failData.put("error", "서버 내부 에러: " + errorResult.optString("message"));
+                PythonBridge.tasks.put(user.getUserNo(), failData);
+            }
+        });
+        
+        res.put("status", "started");
+        response.getWriter().write(res.toString());
     }
 }

@@ -4,10 +4,13 @@ com\ytvocab\controller\StudyServlet.class
 com\ytvocab\util\PythonBridge.class
 com\ytvocab\util\DBManager.class
 com\ytvocab\model\Vocabulary.class
+com\ytvocab\controller\AnalyzeServlet$1.class
+com\ytvocab\util\PythonBridge$AnalyzeCallback.class
 com\ytvocab\dao\VocabularyDAO.class
 com\ytvocab\controller\LoginServlet.class
 com\ytvocab\util\PasswordUtil.class
 com\ytvocab\controller\AnalyzeServlet.class
+com\ytvocab\controller\AnalyzeProgressServlet.class
 com\ytvocab\dao\ProgressDAO.class
 com\ytvocab\controller\JoinServlet.class
 com\ytvocab\model\LearningProgress.class
