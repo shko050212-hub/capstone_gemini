@@ -1,7 +1,12 @@
 import pymysql
+import os
+import platform
+
+IS_WINDOWS = platform.system().lower() == "windows"
+schema_path = "c:\\capstone\\sql\\schema.sql" if IS_WINDOWS else "/home/ec2-user/capstone_gemini/sql/schema.sql"
 
 try:
-    with open("c:\\capstone\\sql\\schema.sql", "r", encoding="utf-8") as f:
+    with open(schema_path, "r", encoding="utf-8") as f:
         sql_file = f.read()
 
     conn = pymysql.connect(
