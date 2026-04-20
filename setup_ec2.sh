@@ -9,14 +9,18 @@ if [ ! -f /swapfile ] && [ ! -f /swapfile_done ]; then
     sudo swapon /swapfile || true
 fi
 
-echo "Installing Amazon Linux Packages (Java 17, Tomcat, Python 3)..."
+echo "Installing Amazon Linux Packages (Java 17, Python 3)..."
 sudo yum update -y
 sudo yum install -y java-17-amazon-corretto-devel || sudo yum install -y java-17-openjdk-devel
-sudo yum install -y tomcat python3 python3-pip || sudo dnf install -y tomcat python3 python3-pip
+sudo yum install -y python3 python3-pip || sudo dnf install -y python3 python3-pip
 
-echo "Starting Tomcat..."
-sudo systemctl enable tomcat || true
-sudo systemctl start tomcat || true
+echo "Manual Install of Tomcat 9 for AL2023..."
+if [ ! -d "/opt/tomcat9" ]; then
+    wget https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.tar.gz
+    sudo mkdir -p /opt/tomcat9
+    sudo tar xvf apache-tomcat-9.0.98.tar.gz -C /opt/tomcat9 --strip-components=1
+    rm -f apache-tomcat-9.0.98.tar.gz
+fi
 
 echo "Installing Static FFmpeg for Amazon Linux..."
 if ! command -v ffmpeg &> /dev/null; then
